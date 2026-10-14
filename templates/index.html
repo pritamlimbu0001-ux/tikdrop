@@ -1,0 +1,754 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#080b10">
+  <meta name="description" content="Download public TikTok videos or extract MP3 audio in a few simple steps.">
+  <title>TikDrop — TikTok Video Downloader</title>
+
+<link
+  rel="icon"
+  type="image/svg+xml"
+  href="{{ url_for('static', filename='favicon.svg') }}"
+>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+
+  {% if adsense_ready %}
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client={{ adsense_client_id }}" crossorigin="anonymous"></script>
+  {% endif %}
+</head>
+
+<body>
+  <div class="ambient ambient-one"></div>
+  <div class="ambient ambient-two"></div>
+  <div class="ambient ambient-three"></div>
+
+  <header class="topbar wrap">
+    <a class="brand" href="/" aria-label="TikDrop home">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14 3v10.2a4.3 4.3 0 1 1-3.1-4.13V12a1.7 1.7 0 1 0 1.7 1.7V3h1.4c.5 2.4 2 3.8 4 4.2v3.1A8.1 8.1 0 0 1 14 8.7"/>
+        </svg>
+      </span>
+      <span>Tik<span class="brand-accent">Drop</span></span>
+    </a>
+    <div class="topbar-right">
+      <span class="status-dot"></span>
+      <span>Video & MP3 downloader</span>
+    </div>
+  </header>
+
+  <main class="wrap main-content">
+    <section class="hero">
+      <div class="eyebrow"><span class="eyebrow-spark">✦</span> SIMPLE. FAST. CLEAN.</div>
+      <h1>Your favorite videos.<br><span class="gradient-text">One click away.</span></h1>
+      <p class="hero-copy">Save public TikTok videos in the best available quality, or extract audio as MP3. Paste a link to get started.</p>
+    </section>
+
+    <!-- Top advertisement -->
+    <section class="ad-area ad-area-top" aria-label="Advertisement">
+      <div class="ad-label">ADVERTISEMENT</div>
+
+      {% if adsense_ready %}
+      <ins class="adsbygoogle ad-sense-unit"
+           style="display:block"
+           data-ad-client="{{ adsense_client_id }}"
+           data-ad-slot="{{ adsense_slot_top }}"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      {% endif %}
+
+      {% if direct_ads.top.url %}
+      <a class="sponsor-card"
+         href="{{ direct_ads.top.url }}"
+         target="_blank"
+         rel="sponsored noopener noreferrer">
+        {% if direct_ads.top.image %}
+        <img src="{{ direct_ads.top.image }}" alt="Sponsor artwork" loading="lazy">
+        {% endif %}
+        <span class="sponsor-copy">
+          <strong>{{ direct_ads.top.title }}</strong>
+          <span>{{ direct_ads.top.text }}</span>
+          <em>Sponsored · Visit sponsor ↗</em>
+        </span>
+      </a>
+      {% elif not adsense_ready %}
+      <div class="ad-placeholder">
+        <span class="ad-placeholder-icon">✦</span>
+        <span>
+          <strong>Ad space available</strong>
+          <small>Configure AdSense or add your sponsor details to display an ad here.</small>
+        </span>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="download-card glass" aria-label="TikTok video and audio downloader">
+      <div class="card-topline">
+        <div class="live-indicator"><span></span> READY WHEN YOU ARE</div>
+        <div class="lock-label">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="5" y="10" width="14" height="11" rx="2"/>
+            <path d="M8 10V7a4 4 0 0 1 8 0v3"/>
+          </svg>
+          Link stays private
+        </div>
+      </div>
+
+      <form id="analyze-form" class="url-form">
+        <label class="sr-only" for="video-url">TikTok video URL</label>
+        <span class="link-icon">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M10 13.5a4.5 4.5 0 0 0 6.36 0l3-3A4.5 4.5 0 0 0 13 4.14l-1.72 1.72"/>
+            <path d="M14 10.5a4.5 4.5 0 0 0-6.36 0l-3 3A4.5 4.5 0 0 0 11 19.86l1.72-1.72"/>
+          </svg>
+        </span>
+
+        <input id="video-url"
+               type="url"
+               placeholder="Paste TikTok video link here..."
+               autocomplete="url"
+               required
+               maxlength="2048">
+
+        <button id="paste-btn" class="paste-btn" type="button">Paste</button>
+
+        <button id="analyze-btn" class="primary-btn" type="submit">
+          <span>Find video</span>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M5 12h14M13 6l6 6-6 6"/>
+          </svg>
+        </button>
+      </form>
+
+      <div class="trust-row">
+        <span><i class="check">✓</i> No account needed</span>
+        <span><i class="check">✓</i> Quality auto-detected</span>
+        <span><i class="check">✓</i> Mobile friendly</span>
+      </div>
+
+      <div id="message" class="message" role="status" aria-live="polite" hidden></div>
+
+      <section id="result" class="result-panel" hidden>
+        <div class="result-heading">
+          <span class="result-kicker">VIDEO FOUND</span>
+          <span class="detected-pill"><span></span> Formats detected</span>
+        </div>
+
+        <div class="video-details">
+          <div class="thumb-wrap">
+            <img id="thumbnail" alt="TikTok video thumbnail" hidden>
+            <div id="thumb-placeholder" class="thumb-placeholder"><span>▶</span></div>
+            <span id="duration" class="duration-pill"></span>
+          </div>
+
+          <div class="video-copy">
+            <h2 id="video-title">TikTok video</h2>
+            <p id="creator-name">Creator</p>
+            <div id="quality-summary" class="quality-summary"></div>
+          </div>
+        </div>
+
+        <form id="download-form" class="download-controls">
+          <label for="format-select">Choose download format</label>
+
+          <div class="format-choice">
+            <label class="format-option" for="format-video">
+              <input id="format-video" type="radio" name="media-format" value="video" checked>
+              <span class="format-option-icon" aria-hidden="true">▶</span>
+              <span class="format-option-copy">
+                <strong>Video</strong>
+                <small>MP4 · Select quality</small>
+              </span>
+            </label>
+
+            <label class="format-option" for="format-mp3">
+              <input id="format-mp3" type="radio" name="media-format" value="mp3">
+              <span class="format-option-icon audio-icon" aria-hidden="true">♫</span>
+              <span class="format-option-copy">
+                <strong>MP3 Audio</strong>
+                <small>Audio · 192 kbps</small>
+              </span>
+            </label>
+          </div>
+
+          <div id="quality-row" class="quality-row">
+            <label for="quality-select">Video quality</label>
+            <div class="select-wrap">
+              <select id="quality-select" aria-label="Select video quality">
+                <option value="best">Best available</option>
+              </select>
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="m7 10 5 5 5-5"/>
+              </svg>
+            </div>
+          </div>
+
+          <div class="quality-and-download">
+            <button id="download-btn" class="primary-btn download-btn" type="submit">
+              <svg viewBox="0 0 24 24" aria-hidden="true">
+                <path d="M12 3v12m-5-5 5 5 5-5M5 17v3h14v-3"/>
+              </svg>
+              <span>Download video</span>
+            </button>
+          </div>
+
+          <p id="quality-note" class="quality-note">Only qualities detected for this video are shown.</p>
+
+          <section id="progress-panel" class="progress-panel" aria-live="polite" hidden>
+            <div class="progress-topline">
+              <span id="progress-message">Preparing your file...</span>
+              <strong id="progress-percent">0%</strong>
+            </div>
+            <div
+              id="progress-track"
+              class="progress-track"
+              role="progressbar"
+              aria-label="Download progress"
+              aria-valuemin="0"
+              aria-valuemax="100"
+              aria-valuenow="0">
+              <div id="progress-fill" class="progress-fill"></div>
+            </div>
+            <p id="progress-hint" class="progress-hint">Keep this page open while your file is being prepared.</p>
+          </section>
+
+          <section id="audio-preview-wrap" class="audio-preview" hidden>
+            <div class="audio-preview-heading">
+              <span class="audio-preview-icon">♫</span>
+              <div>
+                <strong>MP3 preview</strong>
+                <p>Your audio is ready. Listen before downloading.</p>
+              </div>
+            </div>
+            <audio id="audio-preview" controls preload="none">
+              Your browser does not support audio playback.
+            </audio>
+          </section>
+        </form>
+      </section>
+    </section>
+
+    <!-- Bottom advertisement -->
+    <section class="ad-area ad-area-bottom" aria-label="Advertisement">
+      <div class="ad-label">ADVERTISEMENT</div>
+
+      {% if adsense_ready %}
+      <ins class="adsbygoogle ad-sense-unit"
+           style="display:block"
+           data-ad-client="{{ adsense_client_id }}"
+           data-ad-slot="{{ adsense_slot_bottom }}"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>(adsbygoogle = window.adsbygoogle || []).push({});</script>
+      {% endif %}
+
+      {% if direct_ads.bottom.url %}
+      <a class="sponsor-card"
+         href="{{ direct_ads.bottom.url }}"
+         target="_blank"
+         rel="sponsored noopener noreferrer">
+        {% if direct_ads.bottom.image %}
+        <img src="{{ direct_ads.bottom.image }}" alt="Sponsor artwork" loading="lazy">
+        {% endif %}
+        <span class="sponsor-copy">
+          <strong>{{ direct_ads.bottom.title }}</strong>
+          <span>{{ direct_ads.bottom.text }}</span>
+          <em>Sponsored · Visit sponsor ↗</em>
+        </span>
+      </a>
+      {% elif not adsense_ready %}
+      <div class="ad-placeholder">
+        <span class="ad-placeholder-icon">✦</span>
+        <span>
+          <strong>Partner with TikDrop</strong>
+          <small>Place a clearly labelled sponsor message in this space.</small>
+        </span>
+      </div>
+      {% endif %}
+    </section>
+
+    <section class="steps-section">
+      <div class="section-heading">
+        <span class="section-overline">THREE EASY STEPS</span>
+        <h2>From link to <span class="gradient-text">downloaded.</span></h2>
+      </div>
+
+      <div class="steps-grid">
+        <article class="step-card glass">
+          <div class="step-icon green-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M10 13.5a4.5 4.5 0 0 0 6.36 0l3-3A4.5 4.5 0 0 0 13 4.14l-1.72 1.72"/>
+              <path d="M14 10.5a4.5 4.5 0 0 0-6.36 0l-3 3A4.5 4.5 0 0 0 11 19.86l1.72-1.72"/>
+            </svg>
+          </div>
+          <span class="step-number">STEP 01</span>
+          <h3>Copy the link</h3>
+          <p>Copy the URL of a public TikTok video you want to save.</p>
+        </article>
+
+        <article class="step-card glass">
+          <div class="step-icon pink-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <circle cx="11" cy="11" r="7"/>
+              <path d="m16 16 4 4M8 11l2 2 4-4"/>
+            </svg>
+          </div>
+          <span class="step-number">STEP 02</span>
+          <h3>Choose a format</h3>
+          <p>Select your preferred video quality or choose MP3 audio.</p>
+        </article>
+
+        <article class="step-card glass">
+          <div class="step-icon purple-icon">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12m-5-5 5 5 5-5M5 17v3h14v-3"/>
+            </svg>
+          </div>
+          <span class="step-number">STEP 03</span>
+          <h3>Save your file</h3>
+          <p>Follow the progress indicator, preview audio if selected, and save your file.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="notice glass">
+      <span class="notice-icon">ⓘ</span>
+      <p>
+        <strong>Use it responsibly.</strong>
+        Download only videos you own or have permission to save. Respect creators' rights and TikTok's terms. This is an independent tool and is not affiliated with TikTok.
+      </p>
+    </section>
+  </main>
+
+  <footer class="footer wrap">
+    <a class="brand footer-brand" href="/">
+      <span class="brand-mark">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M14 3v10.2a4.3 4.3 0 1 1-3.1-4.13V12a1.7 1.7 0 1 0 1.7 1.7V3h1.4c.5 2.4 2 3.8 4 4.2v3.1A8.1 8.1 0 0 1 14 8.7"/>
+        </svg>
+      </span>
+      <span>Tik<span class="brand-accent">Drop</span></span>
+    </a>
+    <span>Made for simple, responsible saving.</span>
+    <span>© <span id="year"></span> TikDrop</span>
+  </footer>
+
+  <script>
+    const $ = (selector) => document.querySelector(selector);
+
+    const form = $('#analyze-form');
+    const urlInput = $('#video-url');
+    const analyzeBtn = $('#analyze-btn');
+    const downloadBtn = $('#download-btn');
+    const result = $('#result');
+    const message = $('#message');
+    const downloadForm = $('#download-form');
+    const progressPanel = $('#progress-panel');
+    const progressFill = $('#progress-fill');
+    const progressTrack = $('#progress-track');
+    const progressPercent = $('#progress-percent');
+    const progressMessage = $('#progress-message');
+    const progressHint = $('#progress-hint');
+    const audioPreviewWrap = $('#audio-preview-wrap');
+    const audioPreview = $('#audio-preview');
+    const qualityRow = $('#quality-row');
+    const qualityNote = $('#quality-note');
+
+    let currentVideoUrl = '';
+    let activeJobId = '';
+    let isDownloading = false;
+
+    $('#year').textContent = new Date().getFullYear();
+
+    function showMessage(text, type = 'error') {
+      message.textContent = text;
+      message.className = `message ${type}`;
+      message.hidden = false;
+    }
+
+    function clearMessage() {
+      message.hidden = true;
+      message.textContent = '';
+    }
+
+    function setBusy(button, busy, text) {
+      button.disabled = busy;
+      button.classList.toggle('is-loading', busy);
+
+      const label = button.querySelector('span');
+      if (label) {
+        label.textContent = busy
+          ? text
+          : (button === analyzeBtn ? 'Find video' : getDownloadButtonLabel());
+      }
+    }
+
+    function getDownloadButtonLabel() {
+      return $('#format-mp3').checked ? 'Download MP3' : 'Download video';
+    }
+
+    function getSelectedFormat() {
+      return $('#format-mp3').checked ? 'mp3' : 'video';
+    }
+
+    function formatDuration(seconds) {
+      if (seconds == null || !Number.isFinite(Number(seconds))) {
+        return 'Duration unavailable';
+      }
+
+      const total = Math.max(0, Math.floor(Number(seconds)));
+      const mins = Math.floor(total / 60);
+      const secs = total % 60;
+      return `${mins}:${String(secs).padStart(2, '0')}`;
+    }
+
+    function getQualityLabel(height) {
+      const labels = {
+        4320: '8K UHD',
+        2880: '5K',
+        2160: '4K UHD',
+        1440: '1440p',
+        1080: '1080p · Full HD',
+        720: '720p · HD',
+        576: '576p',
+        540: '540p',
+        480: '480p · SD',
+        360: '360p',
+        240: '240p',
+        144: '144p'
+      };
+
+      return labels[height] || `${height}p`;
+    }
+
+    function renderQualities(rawQualities) {
+      const select = $('#quality-select');
+      select.replaceChildren();
+
+      const bestOption = document.createElement('option');
+      bestOption.value = 'best';
+      bestOption.textContent = 'Best available';
+      select.append(bestOption);
+
+      const qualities = [...new Set(
+        (Array.isArray(rawQualities) ? rawQualities : [])
+          .map(Number)
+          .filter(height =>
+            Number.isFinite(height) &&
+            Number.isInteger(height) &&
+            height >= 144 &&
+            height <= 4320
+          )
+      )].sort((a, b) => b - a);
+
+      qualities.forEach(height => {
+        const option = document.createElement('option');
+        option.value = String(height);
+        option.textContent = getQualityLabel(height);
+        select.append(option);
+      });
+
+      if (qualities.length) {
+        $('#quality-summary').textContent =
+          `${qualities.length} quality option${qualities.length === 1 ? '' : 's'} found · Highest: ${getQualityLabel(qualities[0])}`;
+      } else {
+        $('#quality-summary').textContent =
+          'No individual resolutions detected; best available will be used';
+      }
+
+      const maxQuality = qualities[0] || 0;
+
+      if (maxQuality >= 4320) {
+        qualityNote.textContent =
+          '8K detected. Select it to request the original available resolution.';
+      } else if (maxQuality >= 2160) {
+        qualityNote.textContent =
+          '4K detected. Choose a resolution available for this video.';
+      } else if (maxQuality >= 1440) {
+        qualityNote.textContent =
+          '2K is the highest detected resolution for this video.';
+      } else if (maxQuality > 0) {
+        qualityNote.textContent =
+          `Highest detected resolution: ${getQualityLabel(maxQuality)}. Higher resolutions were not detected for this source.`;
+      } else {
+        qualityNote.textContent =
+          'Choose Best available to request the best quality the source provides.';
+      }
+    }
+
+    function updateFormatUI() {
+      const isMp3 = getSelectedFormat() === 'mp3';
+
+      qualityRow.hidden = isMp3;
+      qualityNote.textContent = isMp3
+        ? 'Audio will be extracted as an MP3 file at 192 kbps.'
+        : 'Only qualities detected for this video are shown.';
+
+      downloadBtn.querySelector('span').textContent = getDownloadButtonLabel();
+
+      if (!isMp3) {
+        audioPreview.pause();
+        audioPreview.removeAttribute('src');
+        audioPreview.load();
+        audioPreviewWrap.hidden = true;
+      }
+    }
+
+    function resetProgress() {
+      progressPanel.hidden = true;
+      progressFill.style.width = '0%';
+      progressTrack.setAttribute('aria-valuenow', '0');
+      progressPercent.textContent = '0%';
+      progressMessage.textContent = 'Preparing your file...';
+      progressHint.textContent = 'Keep this page open while your file is being prepared.';
+    }
+
+    function updateProgress(percent, text) {
+      const safePercent = Math.max(0, Math.min(100, Number(percent) || 0));
+      progressPanel.hidden = false;
+      progressFill.style.width = `${safePercent}%`;
+      progressTrack.setAttribute('aria-valuenow', String(safePercent));
+      progressPercent.textContent = `${safePercent}%`;
+      progressMessage.textContent = text || 'Preparing your file...';
+    }
+
+    function triggerDownload(url) {
+      const link = document.createElement('a');
+      link.href = url;
+      link.style.display = 'none';
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+    }
+
+    function wait(ms) {
+      return new Promise(resolve => setTimeout(resolve, ms));
+    }
+
+    async function pollJob(jobId, format) {
+      const startedAt = Date.now();
+      const timeoutMs = 30 * 60 * 1000;
+
+      while (Date.now() - startedAt < timeoutMs) {
+        await wait(800);
+
+        const response = await fetch(
+          `/api/download-status/${encodeURIComponent(jobId)}`,
+          { cache: 'no-store' }
+        );
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Could not check download progress.');
+        }
+
+        updateProgress(data.progress, data.message);
+
+        if (data.status === 'error') {
+          throw new Error(data.error || data.message || 'Download failed.');
+        }
+
+        if (data.status === 'complete') {
+          updateProgress(100, 'Your file is ready.');
+          progressHint.textContent = 'Your browser should begin downloading the file.';
+
+          if (format === 'mp3') {
+            audioPreview.src = data.preview_url;
+            audioPreviewWrap.hidden = false;
+          }
+
+          triggerDownload(data.download_url);
+
+          showMessage(
+            format === 'mp3'
+              ? 'Your MP3 is ready. You can preview it above and find the file in your browser downloads.'
+              : 'Your video is ready. Check your browser downloads.',
+            'success'
+          );
+
+          return;
+        }
+      }
+
+      throw new Error('This download is taking too long. Please try again.');
+    }
+
+    $('#paste-btn').addEventListener('click', async () => {
+      try {
+        if (!navigator.clipboard || !navigator.clipboard.readText) {
+          throw new Error('Clipboard API unavailable');
+        }
+
+        urlInput.value = await navigator.clipboard.readText();
+        urlInput.focus();
+        clearMessage();
+      } catch (_) {
+        urlInput.focus();
+        showMessage(
+          'Clipboard access is blocked by your browser. Paste the link into the field manually.'
+        );
+      }
+    });
+
+    urlInput.addEventListener('input', () => {
+      result.hidden = true;
+      currentVideoUrl = '';
+      activeJobId = '';
+      resetProgress();
+      audioPreview.pause();
+      audioPreview.removeAttribute('src');
+      audioPreview.load();
+      audioPreviewWrap.hidden = true;
+      clearMessage();
+    });
+
+    $('#format-video').addEventListener('change', updateFormatUI);
+    $('#format-mp3').addEventListener('change', updateFormatUI);
+
+    form.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (isDownloading) return;
+
+      clearMessage();
+      result.hidden = true;
+      currentVideoUrl = '';
+
+      const url = urlInput.value.trim();
+
+      if (!url) {
+        showMessage('Please enter a valid TikTok video URL.');
+        return;
+      }
+
+      setBusy(analyzeBtn, true, 'Checking link...');
+
+      try {
+        const response = await fetch('/api/analyze', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ url })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Could not analyze this link.');
+        }
+
+        currentVideoUrl = data.url || url;
+        $('#video-title').textContent = data.title || 'TikTok video';
+
+        const creator = String(data.creator || 'TikTok creator').replace(/^@/, '');
+        $('#creator-name').textContent = `@${creator}`;
+        $('#duration').textContent = formatDuration(data.duration);
+
+        const thumbnail = $('#thumbnail');
+        const placeholder = $('#thumb-placeholder');
+
+        thumbnail.onerror = () => {
+          thumbnail.hidden = true;
+          thumbnail.removeAttribute('src');
+          placeholder.hidden = false;
+        };
+
+        if (data.thumbnail) {
+          thumbnail.src = data.thumbnail;
+          thumbnail.hidden = false;
+          placeholder.hidden = true;
+        } else {
+          thumbnail.hidden = true;
+          thumbnail.removeAttribute('src');
+          placeholder.hidden = false;
+        }
+
+        renderQualities(data.qualities);
+        resetProgress();
+        audioPreviewWrap.hidden = true;
+        result.hidden = false;
+        updateFormatUI();
+
+        showMessage(
+          'Video details loaded. Choose video or MP3 to continue.',
+          'success'
+        );
+
+        result.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+      } catch (error) {
+        showMessage(error.message || 'Something went wrong. Please try again.');
+      } finally {
+        setBusy(analyzeBtn, false, '');
+      }
+    });
+
+    downloadForm.addEventListener('submit', async (event) => {
+      event.preventDefault();
+
+      if (isDownloading) return;
+
+      clearMessage();
+
+      if (!currentVideoUrl) {
+        showMessage('Analyze a TikTok link first.');
+        return;
+      }
+
+      isDownloading = true;
+      activeJobId = '';
+      audioPreview.pause();
+      audioPreview.removeAttribute('src');
+      audioPreview.load();
+      audioPreviewWrap.hidden = true;
+      resetProgress();
+
+      const format = getSelectedFormat();
+
+      setBusy(downloadBtn, true, format === 'mp3' ? 'Preparing MP3...' : 'Preparing video...');
+      updateProgress(0, 'Starting your download...');
+
+      try {
+        const response = await fetch('/api/download', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            url: currentVideoUrl,
+            quality: $('#quality-select').value,
+            format
+          })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error || 'Could not start the download.');
+        }
+
+        activeJobId = data.job_id;
+
+        if (!activeJobId) {
+          throw new Error('The server did not return a download job ID.');
+        }
+
+        await pollJob(activeJobId, format);
+      } catch (error) {
+        showMessage(error.message || 'Download failed. Please try again.');
+        progressHint.textContent = 'You can try again with this link.';
+      } finally {
+        isDownloading = false;
+        setBusy(downloadBtn, false, '');
+      }
+    });
+
+    updateFormatUI();
+  </script>
+</body>
+</html>
