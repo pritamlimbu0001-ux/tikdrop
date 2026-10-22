@@ -218,6 +218,7 @@ def clean_expired_jobs():
 
 
 
+
 def ydl_options(extra=None):
     """Common yt-dlp options for metadata extraction."""
     options = {
@@ -234,6 +235,11 @@ def ydl_options(extra=None):
                 "AppleWebKit/537.36 (KHTML, like Gecko) "
                 "Chrome/131.0.0.0 Safari/537.36"
             ),
+        },
+        "extractor_args": {
+            "generic": {
+                "impersonate": ["chrome"],
+            },
         },
     }
 
