@@ -217,16 +217,24 @@ def clean_expired_jobs():
             shutil.rmtree(directory, ignore_errors=True)
 
 
+
 def ydl_options(extra=None):
     """Common yt-dlp options for metadata extraction."""
     options = {
         "quiet": True,
         "no_warnings": True,
         "noplaylist": True,
-        "socket_timeout": 15,
-        "retries": 1,
-        "extractor_retries": 1,
+        "socket_timeout": 20,
+        "retries": 2,
+        "extractor_retries": 2,
         "skip_download": True,
+        "http_headers": {
+            "User-Agent": (
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
+                "AppleWebKit/537.36 (KHTML, like Gecko) "
+                "Chrome/131.0.0.0 Safari/537.36"
+            ),
+        },
     }
 
     if extra:
